@@ -22,7 +22,7 @@ def main():
     with open('data.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         with open('output.json', 'w', newline='', encoding='utf-8') as write_file:
-            out_dict = {}
+            out_array = []
             alternates = []
             for row in reader:
                 index = row['\ufeffindex']
@@ -72,11 +72,11 @@ def main():
                         'frequency'
                     ]
                     result = dict(zip(keys, data))
-                    out_dict[trad] = result
+                    out_array.append(result)
                 else:
                     print(trad)
-            print(len(out_dict), 'written')
-            json.dump(out_dict, write_file, ensure_ascii=False, indent=4)
+            print(len(out_array), 'written')
+            json.dump(out_array, write_file, ensure_ascii=False, indent=4)
 
 
 

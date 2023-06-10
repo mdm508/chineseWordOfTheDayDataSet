@@ -44,18 +44,17 @@ def main():
                     if alternates:
                         entry.meanings.append("same as {}".format(','.join(alternates[1:])))
                     data = [
-                        index,
+                        int(index),
                         trad,
                         zhuyin,
                         entry.simplified,
                         pinyin,
-                        level,
+                        float(level),
                         entry.meanings,
-                        level,
                         context,
-                        written_frequency,
-                        spoken_frequency,
-                        frequency
+                        int(written_frequency),
+                        int(spoken_frequency),
+                        int(frequency)
                     ]
                     keys = [
                         'index',
@@ -65,7 +64,6 @@ def main():
                         'pinyin',
                         'level',
                         'meanings',
-                        'level',
                         'context',
                         'writtenFrequency',
                         'spokenFrequency',

@@ -1,5 +1,6 @@
 import csv
 import json
+import re
 from cedict_utils.cedict import CedictParser
 
 
@@ -19,11 +20,11 @@ for item in entries:
         # db[item.traditional] = item
 
 def main():
+    pattern = r'see.*\[.*\]'
     with open('data.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         with open('output.json', 'w', newline='', encoding='utf-8') as write_file:
             out_array = []
-            alternates = []
             for row in reader:
                 index = row['\ufeffindex']
                 trad = row['word']
@@ -34,27 +35,37 @@ def main():
                 frequency = row['frequencyPerMillion']
                 zhuyin = row['zhuyin']
                 pinyin = row['pinyin']
-                if '/' in trad:
-                    #handle special case when word has multiple ways to write it 哥哥/哥 for example
-                    #search based off the first one
-                    alternates = trad.split('/')
-                    trad = alternates[0]
-                if trad in db:
-                    entry = db[trad]
-                    if alternates:
-                        entry.meanings.append("same as {}".format(','.join(alternates[1:])))
+                traditional = trad.split('/')[0]
+                if traditional in db:
+                    entry = db[traditional]
+                    # skip any words whose only meaning is of the form ["see 下工夫[xia4 gong1 fu5]"]'
+                    # these dont provide any definitions
+                    if len(entry.meanings) == 1:
+                        if re.search(pattern, entry.meanings[0]):
+                            continue
+                    if len(zhuyin.split('/')) != len(trad.split('/')):
+                        print(trad, pinyin)
+                    # i also dont want these types of strings appearing in meaning section
+                    meanings = list(filter(lambda m: not re.search(pattern, m), entry.meanings))
                     data = [
                         int(index),
-                        trad,
-                        zhuyin,
+                        traditional,
+                        zhuyin.split('/')[0],
                         entry.simplified,
-                        pinyin,
+                        pinyin.split('/')[0],
                         float(level),
-                        entry.meanings,
+                        meanings,
                         context,
                         int(written_frequency),
                         int(spoken_frequency),
-                        int(frequency)
+                        int(frequency),
+                        # handle special case when word has multiple ways to write it 哥哥/哥 for example
+                        # search based off the first one
+                        trad.split('/')[1:],
+                        #zhuyin.split('/')[1:],
+                        #pinyin.split('/')[1:]
+
+
                     ]
                     keys = [
                         'index',
@@ -67,12 +78,16 @@ def main():
                         'context',
                         'writtenFrequency',
                         'spokenFrequency',
-                        'frequency'
+                        'frequency',
+                        'synonyms',
+                        'synonymsZhuyin',
+                        'synonymsPinyin'
                     ]
                     result = dict(zip(keys, data))
                     out_array.append(result)
                 else:
-                    print(trad)
+                    pass
+                    #print(trad)
             print(len(out_array), 'written')
             json.dump(out_array, write_file, ensure_ascii=False, indent=4)
 

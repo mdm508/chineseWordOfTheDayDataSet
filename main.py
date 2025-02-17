@@ -4,22 +4,32 @@ import re
 from cedict_utils.cedict import CedictParser
 
 
-parser = CedictParser()
-parser.read_file('cedict.txt')
-entries = parser.parse()
 
-db = {}
-duplicates = []
-for item in entries:
-    if item.meanings != "#":
-        if item.traditional in db:
-            duplicates.append(item.traditional)
-            db[item.traditional].meanings.extend(item.meanings)
-        else:
-            db[item.traditional] = item
-        # db[item.traditional] = item
+
+def build_db(entries):
+    """
+    return a dictionary of entries with the traditional character as the key
+    as well as list of duplicates
+    :param entries: list of entries from cedict
+    duplicate meaning will be appended to the existing word.
+    """
+    db = {}
+    duplicates = []
+    for item in entries:
+        if item.meanings != "#":
+            if item.traditional in db:
+                duplicates.append(item.traditional)
+                db[item.traditional].meanings.extend(item.meanings)
+            else:
+                db[item.traditional] = item
+    return db, duplicates
+
 
 def main():
+    # read cedict file
+    parser = CedictParser()
+    parser.read_file('cedict.txt')
+    db,_ = build_db(parser.parse())
     pattern = r'see.*\[.*\]'
     with open('data.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)

@@ -3,9 +3,6 @@ import json
 import re
 from cedict_utils.cedict import CedictParser
 
-
-
-
 def build_db(entries):
     """
     return a dictionary of entries with the traditional character as the key
@@ -24,13 +21,69 @@ def build_db(entries):
                 db[item.traditional] = item
     return db, duplicates
 
+def filter_rows(reader, db, pattern):
+    # filter out rows that are not in the cedict dictionary
+    # also filter out rows that have a different number of zhuyin and trad characters
+    # also filter out rows that have a meaning of the form ["see 下工夫[xia4 gong1 fu5]"]
+    # side effect: modifies the row dictionary to include meanings with the pattern removed
+    filtered_rows = []
+    filtered_out = []
+    for row in reader:
+        trad = row['word']
+        traditional = trad.split('/')[0]
+        if traditional in db:
+            entry = db[traditional]
+            if len(entry.meanings) == 1 and re.search(pattern, entry.meanings[0]):
+                filtered_out.append(trad)
+                continue
+            # Skip if zhuyin and trad lengths do not match
+            if len(row['zhuyin'].split('/')) != len(trad.split('/')):
+                filtered_out.append(trad)
+                continue
+            # passed tests
+            # but first filter out any meanings that have the pattern
+            filtered_rows.append(row)
+        else:
+            # definition does not exist in cedict so filter it out.
+            filtered_out.append(trad)
+    return filtered_rows, filtered_out
+
+def adjust_meanings(row,db, pattern):
+    # adjust meanings to remove any meanings that are of the form ["see 下工夫[xia4 gong1 fu5]"]
+    # sort the meanings in reverse order so english appears first
+    meanings = db[row['word']].meanings
+    row['meanings'] = sorted(filter(lambda m: not re.search(pattern, m), meanings), 
+                             reverse=True)
+
+def adjust_zhuyin_pinyin(row):
+    # adjust zhuyin and pinyin to match the number of characters in the word
+    # if there are multiple characters in the word, then the zhuyin and pinyin
+    # will be split by a '/'
+    row['zhuyin'] = row['zhuyin'].split('/')[0]
+    row['pinyin'] = row['pinyin'].split('/')[0]
 
 def main():
     # read cedict file
     parser = CedictParser()
     parser.read_file('cedict.txt')
     db,_ = build_db(parser.parse())
-    pattern = r'see.*\[.*\]'
+    pattern = r'see.*\[.*\]' 
+
+    # gather rows to write
+    with open('data.csv', 'r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        filtered_rows, discarded_rows = filter_rows(reader, db, pattern)
+    print(f"Discarded {len(discarded_rows)} rows")
+    print(f"Will proccess {len(filtered_rows)} rows")
+    # adjust rows
+    for row in filtered_rows[100:110]:
+        adjust_meanings(row, db, pattern)
+        adjust_zhuyin_pinyin(row)
+        # print(row['meanings'])
+        print(row['word'], row['zhuyin'], row['pinyin'], row['meanings'])
+main()
+
+def old_main():
     with open('data.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         with open('output.json', 'w', newline='', encoding='utf-8') as write_file:
@@ -103,6 +156,5 @@ def main():
 
 
 
-main()
 
 

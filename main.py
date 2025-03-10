@@ -30,6 +30,7 @@ def filter_rows(reader, db, pattern):
     """
     filtered_rows = []
     filtered_out = []
+    contexts = set() # used to track how many diff contexts are in source list
     for row in reader:
         trad = row['word']
         tradParts = trad.split('/')
@@ -40,7 +41,8 @@ def filter_rows(reader, db, pattern):
             if len(entry.meanings) == 1 and re.search(pattern, entry.meanings[0]):
                 filtered_out.append(trad)
                 continue
-            row['word'] = traditional
+            row['traditional'] = traditional
+            row['simplified'] = entry.simplified
             row['meanings'] = entry.meanings
             if len(tradParts) > 1:
                 # Some words have multiple ways to write them.
@@ -49,11 +51,34 @@ def filter_rows(reader, db, pattern):
                 row['zhuyin'] = row['zhuyin'].split('/')[0]
                 row['pinyin'] = row['pinyin'].split('/')[0]
             clean_and_sort_meanings(row, pattern)
+            contexts.update(standardize_context(row))
             filtered_rows.append(row)
         else:
             # Definition does not exist in cedict so filter it out.
             filtered_out.append(trad)
-    return filtered_rows, filtered_out
+    return filtered_rows, filtered_out, contexts
+
+
+def standardize_context(row):
+    """
+    Standardize the format of context strings by removing any numbers and transforming categories into sorted arrays.
+    :param context: The context string to be standardized.
+    :return: A standardized context string.
+    """
+    context = row['context']
+    if context == "":
+        row['context'] = []
+        return set()
+    # Remove any numbers
+    context = re.sub(r'\d+\.', '', context)
+    # Split the context string into categories
+    categories = context.split('、')
+    
+    # Sort the categories and update row
+    categories = sorted(categories)
+    row['context'] = categories
+    return set(categories)
+    
 
 def clean_and_sort_meanings(row, pattern):
     """
@@ -93,10 +118,11 @@ def main():
     # Gather rows
     with open('data.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        filtered_rows, discarded_rows = filter_rows(reader, db, pattern)
+        filtered_rows, discarded_rows, contexts = filter_rows(reader, db, pattern)
     print(f"Discarded {len(discarded_rows)} rows")
     print(f"Will process {len(filtered_rows)} rows")
-    
+    print("Discovered the following contexts:")
+    for c in contexts: print(c)
     # Final adjustments to the rows    
     # Reassign indexes based on spoken frequency, if tie then frequency, if tie then written frequency
     filtered_rows = sorted(filtered_rows, key=lambda d: (int(d['spokenFrequencyPerMillion']),
@@ -109,6 +135,7 @@ def main():
     # Drop unneeded keys from row (writtenFrequencyPerMillion, spokenFrequencyPerMillion, frequencyPerMillion, levelNumber)
     for index, row in enumerate(filtered_rows, start=1):
         row['index'] = index
+        del row['word']
         del row['writtenFrequencyPerMillion']
         del row['spokenFrequencyPerMillion']
         del row['frequencyPerMillion']

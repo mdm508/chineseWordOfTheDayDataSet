@@ -16,7 +16,8 @@ def build_db(entries):
         if item.meanings != "#":
             if item.traditional in db:
                 duplicates.append(item.traditional)
-                db[item.traditional].meanings.extend(item.meanings)
+                # This line adds duplicate traditional meanings to english meanings
+                # db[item.traditional].meanings.extend(item.meanings)
             else:
                 db[item.traditional] = item
     return db, duplicates

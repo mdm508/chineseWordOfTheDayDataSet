@@ -31,11 +31,24 @@ def filter_rows(reader, db, pattern):
     filtered_rows = []
     filtered_out = []
     contexts = set() # used to track how many diff contexts are in source list
+    trad_set = set()
     for row in reader:
         trad = row['word']
         tradParts = trad.split('/')
         traditional = tradParts[0]
         if traditional in db:
+            # this was needed for deng. word was deng deng but it was only getting deng part
+            # this loop basically looks at the other parts to see if they work
+            found = False
+            if traditional in trad_set:
+                for t in tradParts:
+                    if t not in trad_set:
+                        traditional = t
+                        found = True
+                        break
+                if not found:
+                    print(traditional, "DUPLICATE")
+                    continue
             entry = db[traditional]
             # If there is only 1 definition and it is of the form ["see 下工夫[xia4 gong1 fu5]"] then filter entire character
             if len(entry.meanings) == 1 and re.search(pattern, entry.meanings[0]):
@@ -53,6 +66,7 @@ def filter_rows(reader, db, pattern):
             clean_and_sort_meanings(row, pattern)
             contexts.update(standardize_context(row))
             filtered_rows.append(row)
+            trad_set.add(traditional)
         else:
             # Definition does not exist in cedict so filter it out.
             filtered_out.append(trad)

@@ -1,0 +1,56 @@
+================================================================================
+                     SECTION 1: ALL CONTEXTS (ALPHABETICAL)                     
+================================================================================
+1.個人資料                               | Personal Information
+10.餐飲、烹飪                            | Dining and Cooking
+11.公共服務                              | Public Services
+12.安全                                  | Safety
+13.自然環境                              | Natural Environment
+14.社會                                  | Society
+15.文化                                  | Culture
+16.情緒、態度                            | Emotions and Attitudes
+17.科技                                  | Science and Technology
+2.日常起居                               | Daily Life
+3.職業                                   | Occupations
+4.休閒、娛樂                             | Leisure and Entertainment
+5.交通、旅遊                             | Transportation and Travel
+6.社交、人際                             | Socializing
+7.身體、醫療                             | Body and Medical
+8.教育、學習                             | Education and Learning
+9.購物、商店                             | Shopping
+No Context Provided                      | Miscellaneous / Unlabeled
+核心詞                                   | Core Words
+
+================================================================================
+                       SECTION 2: CONTEXT FREQUENCY TABLE                       
+================================================================================
+ID    | Context Name                                            | Count
+--------------------------------------------------------------------------------
+1     | No Context Provided                                     | 8662      
+2     | 核心詞                                                  | 2430      
+3     | 8.教育、學習                                            | 339       
+4     | 7.身體、醫療                                            | 263       
+5     | 4.休閒、娛樂                                            | 222       
+6     | 10.餐飲、烹飪                                           | 211       
+7     | 2.日常起居                                              | 211       
+8     | 3.職業                                                  | 200       
+9     | 5.交通、旅遊                                            | 194       
+10    | 1.個人資料                                              | 174       
+11    | 9.購物、商店                                            | 145       
+12    | 12.安全                                                 | 139       
+13    | 14.社會                                                 | 135       
+14    | 6.社交、人際                                            | 127       
+15    | 16.情緒、態度                                           | 109       
+16    | 13.自然環境                                             | 87        
+17    | 15.文化                                                 | 85        
+18    | 11.公共服務                                             | 51        
+19    | 17.科技                                                 | 32        
+
+================================================================================
+                         SECTION 3: SUMMARY STATISTICS                          
+================================================================================
+Total Entries in JSON:      13816
+Total Unique Categories:    19
+Average Words/Category:     727.16
+Unlabeled Data Ratio:       62.70%
+================================================================================

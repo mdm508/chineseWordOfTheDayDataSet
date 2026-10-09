@@ -1,2 +1,4 @@
 /output.csv
 .venv/
+__pycache__/
+*.pyc
